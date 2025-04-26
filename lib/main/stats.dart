@@ -8,6 +8,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:metrical/provider/menu_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Stats extends StatefulWidget {
@@ -29,62 +31,55 @@ class _StatsState extends State<Stats> {
         body: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [buildRecentMeals(), buildPieChart()]));
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [buildRecentMeals(context), buildPieChart()]));
   }
 }
 
 //Display the recent meals when user or customer chooses a meal from the menu page.
-Widget buildRecentMeals() {
-  const image =
-      'https://hdqwalls.com/wallpapers/nissan-gt-r-r35-50th-anniversary-edition-2020-fw.jpg';
-  var supabaseStream =
-      Supabase.instance.client.from('Meals').stream(primaryKey: ['id']);
-  return StreamBuilder(
-    stream: supabaseStream,
-    builder: (context, snaps) {
-      if (!snaps.hasData) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      }
+Widget buildRecentMeals(BuildContext context) {
+  final menu = Provider.of<MenuProvider>(context).menu;
 
-      final meals = snaps.data!;
-      return Expanded(
-        flex: 3,
-        child: ListView.builder(
-          physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics()),
-          itemExtent: 200,
-          scrollDirection: Axis.horizontal,
-          itemCount: meals.length,
-          itemBuilder: (context, index) {
-            final meal = meals[index];
-            return ListTile(
-              subtitle: Column(
-                children: [
-                  Image.network(
-                    image,
-                    height: 200,
-                    width: 200,
-                    fit: BoxFit.cover,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    meal['mealName'],
-                    style: GoogleFonts.alata(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+  return menu.isEmpty
+      ? const Padding(
+          padding: EdgeInsets.only(top: 30, bottom: 50),
+          child: Center(
+            child: Text('Your Recent Meals are empty'),
+          ),
+        )
+      : Expanded(
+          child: ListView.builder(
+            physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics()),
+            itemExtent: 240,
+            scrollDirection: Axis.horizontal,
+            itemCount: menu.length,
+            itemBuilder: (context, index) {
+              final meal = menu[index];
+
+              return ListTile(
+                subtitle: Column(
+                  children: [
+                    Image.network(
+                      '${meal['img']}',
+                      height: 200,
+                      width: 200,
+                      fit: BoxFit.cover,
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      );
-    },
-  );
+                    const SizedBox(height: 10),
+                    Text(
+                      meal['mealName'],
+                      style: GoogleFonts.alata(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
 }
 
 Widget buildPieChart() {

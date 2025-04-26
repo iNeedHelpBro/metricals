@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:metrical/main/homepage.dart';
+import 'package:metrical/pages/create_account.dart';
 import 'package:metrical/states/states.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -94,6 +95,23 @@ class _LogInState extends State<LogIn> {
                   }
                 },
                 child: const Text('Log In'),
+              ),
+              const SizedBox(height: 20),
+              Divider(
+                color: Colors.grey[300],
+                thickness: 1,
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) {
+                    return const CreateAccount();
+                  }));
+                },
+                child: const Text(
+                  '\nDon\'t have an account?',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ],
           ),

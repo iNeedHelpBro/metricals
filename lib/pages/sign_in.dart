@@ -6,7 +6,6 @@ import 'package:metrical/components/my_button.dart';
 import 'package:metrical/pages/create_account.dart';
 import 'package:metrical/pages/log_in.dart';
 import 'package:metrical/services/auth_signin.dart';
-import 'package:metrical/states/states.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignIn extends StatelessWidget {
