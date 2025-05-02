@@ -1,7 +1,12 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:metrical/main/homepage.dart';
+import 'package:metrical/main/stats.dart';
 import 'package:metrical/pages/create_account.dart';
+import 'package:metrical/services/supabase_auth.dart';
 import 'package:metrical/states/states.dart';
+import 'package:metrical/utils/dump.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LogIn extends StatefulWidget {
@@ -12,8 +17,8 @@ class LogIn extends StatefulWidget {
 }
 
 class _LogInState extends State<LogIn> {
-  final email = TextEditingController();
-  final password = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +38,7 @@ class _LogInState extends State<LogIn> {
                 style: TextStyle(fontSize: 24),
               ),
               TextFormField(
-                controller: email,
+                controller: emailController,
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
@@ -41,7 +46,7 @@ class _LogInState extends State<LogIn> {
               ),
               const SizedBox(height: 20),
               TextFormField(
-                controller: password,
+                controller: passwordController,
                 decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
@@ -57,50 +62,126 @@ class _LogInState extends State<LogIn> {
                   ),
                 ),
                 onPressed: () async {
+                  final email = emailController;
+                  final password = passwordController;
+
                   try {
-                    final supabase_login = Supabase.instance.client;
-
-                    final response =
-                        await supabase_login.auth.signInWithPassword(
-                      email: email.text,
-                      password: password.text,
-                    );
-
-                    if (response.user != null) {
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) {
-                        return const Homepage();
-                      }));
-                      States.instance.gotoWithSnackbar(
-                        'Login successful',
-                        2,
-                      );
-                      setState(() {
-                        email.clear();
-                        password.clear();
-                      });
-                    } else if (response.session == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text('Login failed: No session returned')),
-                      );
-                    } else if (email.text.isEmpty || password.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Please provide credentials!')),
+                    if (emailController.text.isEmpty ||
+                        passwordController.text.isEmpty) {
+                      if (mounted) {
+                        States.instance.showtheSnackbar(
+                            title: 'Email and Password form field is empty!');
+                      }
+                    } else {
+                      await SupabaseAuth.instance
+                          .signIn(email.text.trim(), password.text.trim());
+                      States.instance.showtheSnackbar(
+                          title: 'Logged In Successfully!',
+                          duration: 5,
+                          color: yellowScheme);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (cotnext) => const Homepage(),
+                        ),
                       );
                     }
                   } catch (e) {
-                    print('Error during sign-in: $e');
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error logging in at => $e')));
+                    }
                   }
                 },
                 child: const Text('Log In'),
               ),
               const SizedBox(height: 20),
-              Divider(
-                color: Colors.grey[300],
-                thickness: 1,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: const Color.fromARGB(255, 147, 147, 147),
+                      height: 10,
+                      thickness: 1,
+                      endIndent: 10,
+                    ),
+                  ),
+                  Text(
+                    'OR',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 16,
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: const Color.fromARGB(255, 147, 147, 147),
+                      height: 10,
+                      thickness: 1,
+                      indent: 10,
+                    ),
+                  ),
+                ],
               ),
+              Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    /*
+                    
+                    Google button
+                    
+                    */
+                    GestureDetector(
+                      onTap: () async {
+                        try {
+                          SupabaseAuth.instance.signInWithGoogle();
+                        } catch (e) {
+                          print('Error during sign-in: $e');
+                        }
+                      },
+                      child: Container(
+                        //margin: const EdgeInsets.only(right: 10),
+                        child: Image.asset(
+                          'assets/images/google_icon.png',
+                          width: 30,
+                          height: 30,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 50,
+                    ),
+                    /*
+                    
+                    Facebook button
+                    
+                    */
+                    GestureDetector(
+                      onTap: () async {
+                        try {
+                          final supabase = Supabase.instance.client;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Working on it!')));
+                        } catch (e) {
+                          print('Error during sign-in: $e');
+                        }
+                      },
+                      child: Container(
+                        //margin: const EdgeInsets.only(right: 10),
+                        child: Image.asset(
+                          'assets/images/facebook_icon.png',
+                          width: 37,
+                          height: 45,
+                        ),
+                      ),
+                    ),
+                  ]),
               GestureDetector(
                 onTap: () {
                   Navigator.pushReplacement(context,

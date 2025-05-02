@@ -6,6 +6,7 @@ import 'package:metrical/components/my_button.dart';
 import 'package:metrical/pages/create_account.dart';
 import 'package:metrical/pages/log_in.dart';
 import 'package:metrical/services/auth_signin.dart';
+import 'package:metrical/services/auth_stats.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignIn extends StatelessWidget {
@@ -26,64 +27,62 @@ class SignIn extends StatelessWidget {
               style: TextStyle(fontSize: 24),
             ),
             const SizedBox(height: 20),
-            Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 60),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    //Google button
-                    MyButton(
-                      onPressed: () async {
-                        try {
-                          final supabase = Supabase.instance.client;
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  //Google button
+                  MyButton(
+                    onPressed: () async {
+                      try {
+                        final supabase = Supabase.instance.client;
 
-                          if (kIsWeb) {
-                            await supabase.auth
-                                .signInWithOAuth(OAuthProvider.google);
-                          } else if (Platform.isIOS) {
-                            await supabase.auth
-                                .signInWithOAuth(OAuthProvider.apple);
-                          } else if (Platform.isAndroid) {
-                            AuthSignin.instance.googleSignIn();
-                          } else {
-                            print('Unsupported platform');
-                          }
-                        } catch (e) {
-                          print('Error during sign-in: $e');
+                        if (kIsWeb) {
+                          await supabase.auth
+                              .signInWithOAuth(OAuthProvider.google);
+                        } else if (Platform.isIOS) {
+                          await supabase.auth
+                              .signInWithOAuth(OAuthProvider.apple);
+                        } else if (Platform.isAndroid) {
+                          AuthSignin.instance.googleSignIn();
+                        } else {
+                          print('Unsupported platform');
                         }
-                      },
-                      label: Image.asset('assets/images/google.png',
-                          width: 30, height: 30),
-                    ),
-                    //Facebook button
-                    MyButton(
-                      onPressed: () async {
-                        MaterialPageRoute route = MaterialPageRoute(
-                          builder: (context) => const LogIn(),
-                        );
+                      } catch (e) {
+                        print('Error during sign-in: $e');
+                      }
+                    },
+                    label: Image.asset('assets/images/google.png',
+                        width: 30, height: 30),
+                  ),
+                  //Login
+                  MyButton(
+                    onPressed: () async {
+                      MaterialPageRoute route = MaterialPageRoute(
+                        builder: (context) => const AuthStats(),
+                      );
 
-                        Navigator.push(context, route);
-                      },
-                      label: Image.asset('assets/images/log-in.png',
-                          width: 30, height: 30),
-                    ),
-                    //X button (Formerly Twitter)
-                    MyButton(
-                      onPressed: () {
-                        MaterialPageRoute route = MaterialPageRoute(
-                          builder: (context) => const CreateAccount(),
-                        );
+                      Navigator.push(context, route);
+                    },
+                    label: Image.asset('assets/images/log-in.png',
+                        width: 30, height: 30),
+                  ),
+                  //Register
+                  MyButton(
+                    onPressed: () {
+                      MaterialPageRoute route = MaterialPageRoute(
+                        builder: (context) => const CreateAccount(),
+                      );
 
-                        Navigator.push(context, route);
-                      },
-                      label: Image.asset('assets/images/register.png',
-                          fit: BoxFit.fitHeight, width: 30, height: 30),
-                    ),
-                  ],
-                ),
+                      Navigator.push(context, route);
+                    },
+                    label: Image.asset('assets/images/register.png',
+                        fit: BoxFit.fitHeight, width: 30, height: 30),
+                  ),
+                ],
               ),
             )
           ],

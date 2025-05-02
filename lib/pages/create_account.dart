@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:metrical/main/homepage.dart';
 import 'package:metrical/pages/log_in.dart';
 import 'package:metrical/services/auth_signin.dart';
+import 'package:metrical/services/supabase_auth.dart';
 import 'package:metrical/states/states.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -18,7 +19,6 @@ class CreateAccount extends StatefulWidget {
 }
 
 class _CreateAccountState extends State<CreateAccount> {
-  String uId = '';
   final email = TextEditingController();
   final password = TextEditingController();
   @override
@@ -38,6 +38,9 @@ class _CreateAccountState extends State<CreateAccount> {
               const Text(
                 'Create Account',
                 style: TextStyle(fontSize: 24),
+              ),
+              SizedBox(
+                height: 20,
               ),
               TextFormField(
                 controller: email,
@@ -64,30 +67,25 @@ class _CreateAccountState extends State<CreateAccount> {
                   ),
                 ),
                 onPressed: () async {
-                  final emailText = email.text;
-                  final passwordText = password.text;
+                  final emailText = TextEditingController();
+                  final passwordText = TextEditingController();
 
                   try {
-                    final signup = await Supabase.instance.client.auth.signUp(
-                      email: emailText,
-                      password: passwordText,
-                    );
-                    Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) {
-                      return const LogIn();
-                    }));
-                    States.instance.gotoWithSnackbar(
-                      'Account Created Successfully',
-                      2,
+                    await SupabaseAuth.instance.signUp(
+                      emailText.text.trim(),
+                      passwordText.text.trim(),
                     );
 
-                    setState(() {
-                      email.clear();
-                      password.clear();
-                      uId = signup.user?.id ?? emailText.substring(0, 5);
-                    });
-                  } catch (_) {
-                    print(_);
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      LogIn();
+                      throw Exception('There is an Error');
+                    }));
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Error creating account at => $e')));
+                    }
                   }
                 },
                 child: const Text('Create Account'),
@@ -135,8 +133,9 @@ class _CreateAccountState extends State<CreateAccount> {
                           final supabase = Supabase.instance.client;
 
                           if (kIsWeb) {
-                            await supabase.auth
-                                .signInWithOAuth(OAuthProvider.google);
+                            await supabase.auth.signInWithOAuth(
+                                OAuthProvider.google,
+                                redirectTo: 'http://localhost:3000');
                           } else if (Platform.isAndroid) {
                             AuthSignin.instance.googleSignIn();
                           } else {
@@ -165,15 +164,15 @@ class _CreateAccountState extends State<CreateAccount> {
                           final supabase = Supabase.instance.client;
 
                           if (kIsWeb) {
-                            await supabase.auth
-                                .signInWithOAuth(OAuthProvider.facebook);
-                          } else if (Platform.isAndroid) {
                             await supabase.auth.signInWithOAuth(
                               OAuthProvider.facebook,
                               redirectTo: kIsWeb
                                   ? 'https://nvzfhsjifezuqwozlfgz.supabase.co/auth/v1/callback'
                                   : 'io.supabase.flutterdemo://login-callback',
                             );
+                          } else if (Platform.isAndroid) {
+                            await supabase.auth
+                                .signInWithOAuth(OAuthProvider.facebook);
                           } else {
                             print('Unsupported platform');
                           }

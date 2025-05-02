@@ -5,11 +5,15 @@ final snackbar = GlobalKey<ScaffoldMessengerState>();
 class States {
   static States instance = States();
 
-  void gotoWithSnackbar(String title, int duration) {
+  void showtheSnackbar(
+      {required title, int duration = 2, Color color = Colors.red}) {
     snackbar.currentState?.showSnackBar(
       SnackBar(
         duration: Duration(seconds: duration),
-        content: Text(title),
+        content: Text(
+          title,
+          style: TextStyle(color: color),
+        ),
       ),
     );
   }

@@ -4,11 +4,13 @@
 
  */
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:metrical/pages/log_in.dart';
 import 'package:metrical/provider/menu_provider.dart';
+import 'package:metrical/services/supabase_auth.dart';
+import 'package:metrical/utils/dump.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -20,23 +22,71 @@ class Stats extends StatefulWidget {
 }
 
 class _StatsState extends State<Stats> {
+  final user = SupabaseAuth.instance.getCurrentUser();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        drawer: Drawer(),
+        backgroundColor: yellowScheme,
+        drawer: Drawer(
+          backgroundColor: const Color.fromARGB(79, 225, 220, 206),
+          child: ListView(
+            children: [
+              DrawerHeader(
+                  child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  color: yellowScheme,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(
+                        Icons.person,
+                        size: 80,
+                      ),
+                      Text(
+                        '$user',
+                        style: GoogleFonts.nunitoSans(fontSize: 30),
+                      )
+                    ],
+                  ),
+                ),
+              )),
+              ListTile(
+                leading: Text(
+                  'Log Out',
+                  style: GoogleFonts.nunitoSans(fontSize: 20),
+                ),
+                trailing: GestureDetector(
+                  child: Icon(
+                    Icons.logout_rounded,
+                    color: yellowScheme,
+                  ),
+                  onTap: () async {
+                    SupabaseAuth.instance.signOut();
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (context) => const LogIn()));
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
         appBar: AppBar(
-          title: Text('Statistics', style: GoogleFonts.alata(wordSpacing: 1)),
+          backgroundColor: yellowScheme,
+          title: Text(
+            'Statistics',
+            style: GoogleFonts.alata(wordSpacing: 1),
+          ),
           centerTitle: true,
         ),
-        body: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [buildRecentMeals(context), buildPieChart()]));
+        body: ListView(itemExtent: 340, children: [
+          buildRecentMeals(context),
+          buildPieChart(),
+        ]));
   }
 }
 
-//Display the recent meals when user or customer chooses a meal from the menu page.
 Widget buildRecentMeals(BuildContext context) {
   final menu = Provider.of<MenuProvider>(context).menu;
 
@@ -44,40 +94,63 @@ Widget buildRecentMeals(BuildContext context) {
       ? const Padding(
           padding: EdgeInsets.only(top: 30, bottom: 50),
           child: Center(
-            child: Text('Your Recent Meals are empty'),
+            child: Text('Your Recent Meals is empty'),
           ),
         )
-      : Expanded(
-          child: ListView.builder(
-            physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics()),
-            itemExtent: 240,
-            scrollDirection: Axis.horizontal,
-            itemCount: menu.length,
-            itemBuilder: (context, index) {
-              final meal = menu[index];
-
-              return ListTile(
-                subtitle: Column(
-                  children: [
-                    Image.network(
-                      '${meal['img']}',
-                      height: 200,
-                      width: 200,
-                      fit: BoxFit.cover,
+      : Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 340),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Text(
+                    'Your Recent Meals',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      meal['mealName'],
-                      style: GoogleFonts.alata(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              );
-            },
+                SizedBox(
+                  height: 280,
+                  child: ListView.builder(
+                    physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics()),
+                    itemExtent: 240,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: menu.length,
+                    itemBuilder: (context, index) {
+                      final meal = menu[index];
+
+                      return ListTile(
+                        subtitle: Column(
+                          children: [
+                            Image.network(
+                              '${meal['img']}',
+                              height: 200,
+                              width: 200,
+                              fit: BoxFit.cover,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              meal['mealName'],
+                              style: GoogleFonts.alata(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         );
 }
@@ -95,6 +168,7 @@ Widget buildPieChart() {
       }
 
       final meals = snaps.data!;
+
       final List<PieChartSectionData> sections =
           meals.map<PieChartSectionData>((meal) {
         return PieChartSectionData(
@@ -108,13 +182,16 @@ Widget buildPieChart() {
       return Card(
         elevation: 20,
         shape: Border.symmetric(horizontal: BorderSide(width: 2)),
-        color: const Color.fromARGB(255, 173, 171, 162),
-        child: AspectRatio(
-          aspectRatio: 2,
-          child: PieChart(
-            PieChartData(
-              centerSpaceRadius: 20,
-              sections: sections,
+        color: const Color.fromARGB(83, 134, 128, 104),
+        child: Padding(
+          padding: const EdgeInsets.only(right: 180),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: PieChart(
+              PieChartData(
+                centerSpaceRadius: 50,
+                sections: sections,
+              ),
             ),
           ),
         ),
