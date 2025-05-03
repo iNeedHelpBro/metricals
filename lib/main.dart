@@ -6,6 +6,7 @@ import 'package:metrical/components/my_button.dart';
 import 'package:metrical/pages/sign_in.dart';
 import 'package:metrical/provider/menu_provider.dart';
 import 'package:metrical/services/auth_stats.dart';
+import 'package:metrical/services/network/internetwraper.dart';
 import 'package:metrical/services/supabase_auth.dart';
 import 'package:metrical/states/states.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],
-      child: MyApp(),
+      child: Internetwraper(child: MyApp()),
     ),
   );
 }
@@ -34,7 +35,6 @@ class MyApp extends StatelessWidget {
       scaffoldMessengerKey: snackbar,
       title: 'MetriCal App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       home: AuthStats(),

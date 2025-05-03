@@ -1,3 +1,4 @@
+import 'package:metrical/services/auth_signin.dart';
 import 'package:metrical/utils/dump.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -21,10 +22,7 @@ class SupabaseAuth {
 
   Future<void> signInWithGoogle() async {
     try {
-      await SupabaseAuth.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback/',
-      );
+      AuthSignin.instance.googleSignIn();
     } catch (e) {
       print("Google Sign-In Error: $e");
     }
