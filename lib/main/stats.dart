@@ -5,9 +5,11 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:metrical/pages/log_in.dart';
+import 'package:metrical/pages/profile_setting_page.dart';
 import 'package:metrical/provider/menu_provider.dart';
 import 'package:metrical/services/supabase_auth.dart';
 import 'package:metrical/utils/dump.dart';
@@ -26,7 +28,7 @@ class _StatsState extends State<Stats> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: yellowScheme,
+        backgroundColor: darkScheme,
         drawer: Drawer(
           backgroundColor: const Color.fromARGB(79, 225, 220, 206),
           child: ListView(
@@ -52,22 +54,49 @@ class _StatsState extends State<Stats> {
                   ),
                 ),
               )),
-              ListTile(
-                leading: Text(
-                  'Log Out',
-                  style: GoogleFonts.nunitoSans(fontSize: 20),
-                ),
-                trailing: GestureDetector(
-                  child: Icon(
-                    Icons.logout_rounded,
-                    color: yellowScheme,
+              Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ListTile(
+                    leading: Text(
+                      'Settings',
+                      style: GoogleFonts.nunitoSans(fontSize: 20),
+                    ),
+                    trailing: GestureDetector(
+                      child: Icon(
+                        Icons.settings,
+                        color: yellowScheme,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const ProfileSettingPage()));
+                      },
+                    ),
                   ),
-                  onTap: () async {
-                    SupabaseAuth.instance.signOut();
-                    Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: (context) => const LogIn()));
-                  },
-                ),
+                  ListTile(
+                    leading: Text(
+                      'Log Out',
+                      style: GoogleFonts.nunitoSans(fontSize: 20),
+                    ),
+                    trailing: GestureDetector(
+                      child: Icon(
+                        Icons.logout_rounded,
+                        color: yellowScheme,
+                      ),
+                      onTap: () async {
+                        SupabaseAuth.instance.signOut();
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LogIn()));
+                      },
+                    ),
+                  )
+                ],
               )
             ],
           ),
@@ -80,10 +109,14 @@ class _StatsState extends State<Stats> {
           ),
           centerTitle: true,
         ),
-        body: ListView(itemExtent: 340, children: [
-          buildRecentMeals(context),
-          buildPieChart(),
-        ]));
+        body: RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
+            },
+            child: ListView(itemExtent: 340, children: [
+              buildRecentMeals(context),
+              buildPieChart(),
+            ])));
   }
 }
 
@@ -162,8 +195,8 @@ Widget buildPieChart() {
     stream: supabaseStream,
     builder: (context, snaps) {
       if (!snaps.hasData) {
-        return const Center(
-          child: CircularProgressIndicator(),
+        return Center(
+          child: SpinKitDualRing(color: yellowScheme),
         );
       }
 
@@ -182,7 +215,7 @@ Widget buildPieChart() {
       return Card(
         elevation: 20,
         shape: Border.symmetric(horizontal: BorderSide(width: 2)),
-        color: const Color.fromARGB(83, 134, 128, 104),
+        color: const Color.fromARGB(255, 249, 255, 214),
         child: Padding(
           padding: const EdgeInsets.only(right: 180),
           child: AspectRatio(

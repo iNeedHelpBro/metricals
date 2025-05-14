@@ -20,13 +20,14 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPageState extends State<MenuPage> {
+  bool isTapped = false;
   @override
   Widget build(BuildContext context) {
     var supabaseStream =
         Supabase.instance.client.from('Meals').stream(primaryKey: ['id']);
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 78, 73, 60),
+      backgroundColor: darkScheme,
       appBar: AppBar(
         title: Text(
           'Whats your meal for the day?',
@@ -37,14 +38,16 @@ class _MenuPageState extends State<MenuPage> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          setState(() {});
+          setState(() {
+            supabaseStream;
+          });
         },
         child: StreamBuilder(
           stream: supabaseStream,
           builder: (context, snaps) {
             if (!snaps.hasData) {
-              return const Center(
-                child: CircularProgressIndicator(),
+              return Center(
+                child: SpinKitDualRing(color: yellowScheme),
               );
             }
 
@@ -57,11 +60,10 @@ class _MenuPageState extends State<MenuPage> {
                 final meals = meal[index];
                 return GestureDetector(
                   onDoubleTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          content: Column(
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Image.network(
@@ -79,10 +81,8 @@ class _MenuPageState extends State<MenuPage> {
                                 label: Text('Select as your order'),
                               ),
                             ],
-                          ),
-                        );
-                      },
-                    );
+                          );
+                        });
                     // ListTile(
                     //   subtitle: Text(
                     //       '${meals['mealName']} \n ${meals['mealDescription']}'),
@@ -139,8 +139,17 @@ class _MenuPageState extends State<MenuPage> {
                     // );
                   },
                   child: Menus(
+                    fav: () {
+                      setState(() {
+                        isTapped = true;
+                      });
+                    },
+                    icons: Icon(
+                      isTapped ? Icons.favorite_border_sharp : Icons.favorite,
+                      size: 30,
+                      color: Colors.red,
+                    ),
                     image: meals['img'],
-                    mealDescription: meals['mealDescription'],
                     title: meals['mealName'],
                   ),
                 );

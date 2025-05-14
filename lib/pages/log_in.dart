@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:metrical/main/homepage.dart';
 import 'package:metrical/main/stats.dart';
 import 'package:metrical/pages/create_account.dart';
@@ -65,33 +66,66 @@ class _LogInState extends State<LogIn> {
                   final email = emailController;
                   final password = passwordController;
 
-                  try {
-                    if (emailController.text.isEmpty ||
-                        passwordController.text.isEmpty) {
-                      if (mounted) {
-                        States.instance.showtheSnackbar(
-                            title: 'Email and Password form field is empty!');
+                  loadingDialog().then((val) async {
+                    EasyLoading.dismiss();
+                    try {
+                      if (email.text.isEmpty || password.text.isEmpty) {
+                        if (mounted) {
+                          States.instance.showtheSnackbar(
+                            title: 'Email and Password fields cannot be empty!',
+                            color: Colors.red,
+                          );
+                        }
+                      } else {
+                        final response = await SupabaseAuth.instance
+                            .signIn(email.text.trim(), password.text.trim());
+
+                        if (response.user != null) {
+                          States.instance.showtheSnackbar(
+                            title: 'Logged In Successfully!',
+                            duration: 5,
+                            color: yellowScheme,
+                          );
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const Homepage(),
+                            ),
+                          );
+                        } else {
+                          States.instance.showtheSnackbar(
+                            title:
+                                'Invalid email or password. Please try again.',
+                            color: Colors.red,
+                          );
+                        }
                       }
-                    } else {
-                      await SupabaseAuth.instance
-                          .signIn(email.text.trim(), password.text.trim());
+                    } on AuthException catch (e) {
+                      if (e.message.contains('Invalid login credentials')) {
+                        States.instance.showtheSnackbar(
+                          title: 'Invalid email or password. Please try again.',
+                          color: Colors.red,
+                        );
+                      } else if (e.message.contains('User not found')) {
+                        States.instance.showtheSnackbar(
+                          title:
+                              'Account does not exist. Please create an account.',
+                          color: Colors.red,
+                        );
+                      } else {
+                        States.instance.showtheSnackbar(
+                          title: 'An error occurred: ${e.message}',
+                          color: Colors.red,
+                        );
+                      }
+                    } catch (e) {
                       States.instance.showtheSnackbar(
-                          title: 'Logged In Successfully!',
-                          duration: 5,
-                          color: yellowScheme);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (cotnext) => const Homepage(),
-                        ),
+                        title:
+                            'An unexpected error occurred. Please try again.',
+                        color: Colors.red,
                       );
                     }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error logging in at => $e')));
-                    }
-                  }
+                  });
                 },
                 child: const Text('Log In'),
               ),
@@ -139,7 +173,10 @@ class _LogInState extends State<LogIn> {
                     GestureDetector(
                       onTap: () async {
                         try {
-                          SupabaseAuth.instance.signInWithGoogle();
+                          loadingDialog().then((val) {
+                            EasyLoading.dismiss();
+                            SupabaseAuth.instance.signInWithGoogle(context);
+                          });
                         } catch (e) {
                           print('Error during sign-in: $e');
                         }

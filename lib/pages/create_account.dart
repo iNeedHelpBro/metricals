@@ -1,14 +1,16 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, avoid_unnecessary_containers, use_build_context_synchronously
 
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:metrical/main/homepage.dart';
 import 'package:metrical/pages/log_in.dart';
 import 'package:metrical/services/auth_signin.dart';
 import 'package:metrical/services/supabase_auth.dart';
 import 'package:metrical/states/states.dart';
+import 'package:metrical/utils/dump.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CreateAccount extends StatefulWidget {
@@ -67,26 +69,43 @@ class _CreateAccountState extends State<CreateAccount> {
                   ),
                 ),
                 onPressed: () async {
-                  final emailText = TextEditingController();
-                  final passwordText = TextEditingController();
+                  final emailText = email;
+                  final passwordText = password;
 
-                  try {
-                    await SupabaseAuth.instance.signUp(
-                      emailText.text.trim(),
-                      passwordText.text.trim(),
-                    );
-
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      LogIn();
-                      throw Exception('There is an Error');
-                    }));
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('Error creating account at => $e')));
+                  loadingDialog().then((val) async {
+                    try {
+                      if (isAGmailProvider(emailText.text)) {
+                        await SupabaseAuth.instance.signUp(
+                          emailText.text.trim(),
+                          passwordText.text.trim(),
+                        );
+                        States.instance.showtheSnackbar(
+                          title:
+                              'Account Created! Start Logging with your account!',
+                          duration: 5,
+                          color: yellowScheme,
+                        );
+                        EasyLoading.dismiss();
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => LogIn()));
+                      } else {
+                        States.instance.showtheSnackbar(
+                          title: 'Use @gmail.com instead and try again',
+                          duration: 5,
+                        );
+                        EasyLoading.dismiss();
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error creating account'),
+                          ),
+                        );
+                        EasyLoading.dismiss();
+                      }
                     }
-                  }
+                  });
                 },
                 child: const Text('Create Account'),
               ),
@@ -130,17 +149,8 @@ class _CreateAccountState extends State<CreateAccount> {
                     GestureDetector(
                       onTap: () async {
                         try {
-                          final supabase = Supabase.instance.client;
-
-                          if (kIsWeb) {
-                            await supabase.auth.signInWithOAuth(
-                                OAuthProvider.google,
-                                redirectTo: 'http://localhost:3000');
-                          } else if (Platform.isAndroid) {
-                            AuthSignin.instance.googleSignIn();
-                          } else {
-                            print('Unsupported platform');
-                          }
+                          SupabaseAuth.instance
+                              .createAccountWithGoogle(context);
                         } catch (e) {
                           print('Error during sign-in: $e');
                         }

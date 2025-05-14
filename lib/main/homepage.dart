@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:metrical/main/menu_page.dart';
 import 'package:metrical/main/stats.dart';
 import 'package:awesome_bottom_bar/awesome_bottom_bar.dart';
+import 'package:metrical/utils/dump.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -38,10 +39,13 @@ class _HomepageState extends State<Homepage> {
           children: pages,
         ),
         bottomNavigationBar: BottomBarInspiredOutside(
+          isAnimated: true,
+          radius: 50,
+          curve: Cubic(110, 80, 110, 80),
           items: items,
-          backgroundColor: Colors.white,
-          color: Colors.deepPurple,
-          colorSelected: Colors.white,
+          backgroundColor: yellowScheme,
+          color: darkScheme,
+          colorSelected: yellowScheme,
           indexSelected: currentPage,
           onTap: (int index) => setState(() {
             currentPage = index;
@@ -49,7 +53,10 @@ class _HomepageState extends State<Homepage> {
           top: -25,
           animated: true,
           itemStyle: ItemStyle.hexagon,
-          chipStyle: const ChipStyle(drawHexagon: true),
+          chipStyle: ChipStyle(
+              drawHexagon: true,
+              background: Colors.deepOrange,
+              color: yellowScheme),
         ),
         // BottomNavigationBar(
         //   iconSize: 35,

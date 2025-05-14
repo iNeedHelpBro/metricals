@@ -29,6 +29,9 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
+	<key>MinimumOSVersion</key>
+	<string>11.0</string>
+
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
@@ -54,6 +57,7 @@
 		<array>
 			<!-- TODO Replace this value: -->
 			<!-- Copied from GoogleService-Info.plist key REVERSED_CLIENT_ID -->
+			<string>com.example.metrical </string>
 			<string>com.googleusercontent.apps.1008827549956-qc5o7gbnbam1td8t2ok2ibtsbsku17ia</string>
 		</array>
 	</dict>
